@@ -15,10 +15,12 @@ dependencies = [
     "matplotlib>=3.9.4",
     "networkx>=3.2.1",
     "numpy>=1.26.4",
-    "pygraphviz>=1.11",
     "scipy>=1.13.1",
     "sympy>=1.14.0",
 ]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
 
 [project.urls]
 Homepage = "http://fiabilipy.org"

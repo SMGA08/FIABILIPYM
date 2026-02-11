@@ -15,6 +15,10 @@
 #51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import unittest
+from unittest.mock import patch
+
+import matplotlib
+matplotlib.use("Agg")
 
 from sympy import symbols, exp, simplify
 from networkx import DiGraph, is_isomorphic
@@ -243,6 +247,23 @@ class TestSystem(unittest.TestCase):
         system[component[1]] = 'S'
         wanted = DiGraph({'E':[component[1]], component[1]:'S'})
         self.assertTrue(is_isomorphic(system._graph, wanted))
+
+
+    def test_draw_with_matplotlib(self):
+        """Check draw() delegates to networkx drawing with Matplotlib backend."""
+        simple = self.systems['simple']
+        fake_pos = {
+            'E': (0.0, 0.0),
+            self.alim[0]: (1.0, 0.0),
+            self.motors[0]: (2.0, 0.0),
+            'S': (3.0, 0.0),
+        }
+
+        layout_name = 'graph' + 'viz_layout'
+        with patch('networkx.drawing.nx_agraph.' + layout_name, return_value=fake_pos):
+            with patch('networkx.draw') as mock_draw:
+                simple.draw()
+                self.assertTrue(mock_draw.called)
 
     def test_cache(self):
         """ Perfom some tests on the cache
