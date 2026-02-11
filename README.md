@@ -315,7 +315,7 @@ plt.show()
 uv venv
 uv sync
 
-uv pip install -i https://test.pypi.org/simple --extra-index-url https://pypi.org/simple fiabilipym
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple fiabilipym-modify-smga08
 
 
 ```
