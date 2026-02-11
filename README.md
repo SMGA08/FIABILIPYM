@@ -345,6 +345,11 @@ Equivalent uv-based commands:
 
 ```bash
 uv run --extra test pytest -q
+```
+
+Alternative (stdlib unittest):
+
+```bash
 PYTHONPATH=src uv run python -m unittest discover -s tests
 ```
 
