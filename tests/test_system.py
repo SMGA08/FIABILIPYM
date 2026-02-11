@@ -14,11 +14,13 @@
 #with this program; if not, write to the Free Software Foundation, Inc.,
 #51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import tempfile
 import unittest
-from unittest.mock import patch
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib.axes
+import matplotlib.pyplot as plt
 
 from sympy import symbols, exp, simplify
 from networkx import DiGraph, is_isomorphic
@@ -250,20 +252,18 @@ class TestSystem(unittest.TestCase):
 
 
     def test_draw_with_matplotlib(self):
-        """Check draw() delegates to networkx drawing with Matplotlib backend."""
+        """Check draw() returns a Matplotlib Axes."""
         simple = self.systems['simple']
-        fake_pos = {
-            'E': (0.0, 0.0),
-            self.alim[0]: (1.0, 0.0),
-            self.motors[0]: (2.0, 0.0),
-            'S': (3.0, 0.0),
-        }
+        ax = simple.draw()
+        self.assertIsInstance(ax, matplotlib.axes.Axes)
 
-        layout_name = 'graph' + 'viz_layout'
-        with patch('networkx.drawing.nx_agraph.' + layout_name, return_value=fake_pos):
-            with patch('networkx.draw') as mock_draw:
-                simple.draw()
-                self.assertTrue(mock_draw.called)
+    def test_draw_can_save_figure_with_agg_backend(self):
+        """Check draw()-produced figure can be saved in headless mode."""
+        simple = self.systems['simple']
+        ax = simple.draw()
+        with tempfile.NamedTemporaryFile(suffix='.png') as tmp:
+            ax.figure.savefig(tmp.name)
+        plt.close(ax.figure)
 
     def test_cache(self):
         """ Perfom some tests on the cache

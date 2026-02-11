@@ -309,15 +309,10 @@ plt.show()
 
 ---
 
-## Installation (uv)
+## Installation
 
 ```bash
-uv venv
-uv sync
-
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple fiabilipym-modify-smga08
-
-
+pip install fiabilipym
 ```
 
 

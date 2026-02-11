@@ -7,7 +7,7 @@ long_description = readme_path.read_text(encoding="utf-8") if readme_path.exists
 
 setup(
     name="fiabilipym",
-    version="2.8.1",
+    version="2.8.2",
     author="chabotsi, crubier, cdrom1",
     author_email="contact@fiabilipy.org",
     description="fiabilipy with Python 3 compatibility and graph visualization",
@@ -21,7 +21,6 @@ setup(
         "matplotlib>=3.9.4",
         "networkx>=3.2.1",
         "numpy>=1.26.4",
-        "pygraphviz>=1.11",
         "scipy>=1.13.1",
         "sympy>=1.14.0",
     ],
