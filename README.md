@@ -35,7 +35,7 @@ of the original **fiabilipy 2.4 documentation**.
 - Build reliability block diagrams
 - Compute reliability, availability, maintainability, and MTTF
 - Model systems using Markov processes
-- Draw system graphs using Graphviz layouts via NetworkX
+- Draw system graphs with Matplotlib
 - Simulate aging with Weibull (Monte Carlo), yielding MTTF and R(t) curves
 
 ---
@@ -92,11 +92,14 @@ S.reliability(t)
 
 ## Visualization
 
-`System.draw()` uses matplotlib for rendering and Graphviz for layout.
+`System.draw()` renders reliability block diagrams with Matplotlib.
 
 ```python
-from fiabilipym import Component, System
+import matplotlib
+matplotlib.use("Agg")  # use a non-interactive backend for CI/headless runs
+
 import matplotlib.pyplot as plt
+from fiabilipym import Component, System
 
 motor = Component("M", 1e-4, 3e-2)
 power = Component("P", 1e-6, 2e-4)
@@ -107,14 +110,27 @@ system[power] = [motor]
 system[motor] = "S"
 
 system.draw()
-plt.show()
+plt.tight_layout()
+plt.savefig("block_diagram.png", dpi=150)
 ```
 
-For headless environments:
+Minimal Matplotlib-only block diagram example:
 
 ```python
 import matplotlib
 matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(5, 2))
+ax.plot([0.1, 0.9], [0.5, 0.5], color="black", linewidth=1.5)
+ax.text(0.08, 0.5, "E", va="center", ha="right")
+ax.text(0.92, 0.5, "S", va="center", ha="left")
+ax.add_patch(plt.Rectangle((0.4, 0.4), 0.2, 0.2, fill=False, linewidth=1.5))
+ax.text(0.5, 0.5, "C1", va="center", ha="center")
+ax.set_axis_off()
+fig.tight_layout()
+fig.savefig("minimal_block_diagram.png", dpi=150)
 ```
 
 ---
@@ -175,7 +191,7 @@ five reference architectures and generates:
 - MTTF bar plot
 - Reliability R(t) curves
 - Optional MTTF vs baseline lambda sweep (mean-matched)
-- Graphviz drawings
+- System drawings
 
 If you want a code-only version, the snippet below mirrors the notebook's core:
 
@@ -282,23 +298,6 @@ plt.show()
 
 ---
 
-## Graphviz system dependency
-
-Graph layout relies on Graphviz via `pygraphviz`.
-
-```bash
-# Debian / Ubuntu
-sudo apt-get install graphviz
-
-# macOS (Homebrew)
-brew install graphviz
-
-# Windows (Chocolatey)
-choco install graphviz
-```
-
----
-
 ## Installation (uv)
 
 ```bash
@@ -312,6 +311,12 @@ uv pip install -i https://test.pypi.org/simple --extra-index-url https://pypi.or
 
 
 ## Tests
+
+```bash
+uv run --extra test pytest -q
+```
+
+Alternative (stdlib unittest):
 
 ```bash
 PYTHONPATH=src uv run python -m unittest discover -s tests
