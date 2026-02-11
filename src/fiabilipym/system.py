@@ -595,31 +595,29 @@ class System(object):
 
 
     def draw(self):
-        from networkx.drawing.nx_agraph import graphviz_layout
-        import pylab as plt
-        from pprint import pprint
-        r""" Draw the system
+        import matplotlib.pyplot as plt
+        r"""Draw the system with a Matplotlib-compatible layout.
 
-            Draw the system with graphviz.
-
-            Examples
-            --------
-            >>> import pylab as p
-            >>> motor = Component('M', 1e-4, 3e-2)
-            >>> powers = [Component('P{}'.format(i), 1e-6, 2e-4) for i in (0,1)]
-            >>> S = System()
-            >>> S['E'] = [powers[0], powers[1]]
-            >>> S[powers[0]] = S[powers[1]] = [motor]
-            >>> S[motor] = 'S'
-            >>> S.draw()
-            >>> p.show()
-
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes used to render the reliability block diagram.
         """
-        dico = {}
-        for c in self.components:
-            dico[c] = c.name.encode("utf8");
+        labels = {c: c.name for c in self.components}
+        labels['S'] = 'Output'
+        labels['E'] = 'Input'
 
-        dico['S'] = "Output";
-        dico['E'] = "Input";
+        pos = nx.spring_layout(self._graph, seed=42)
 
-        nx.draw(self._graph, pos=graphviz_layout(self._graph), labels=dico)
+        _, ax = plt.subplots()
+        nx.draw(
+            self._graph,
+            pos=pos,
+            labels=labels,
+            with_labels=True,
+            node_color='white',
+            edgecolors='black',
+            ax=ax,
+        )
+        ax.set_axis_off()
+        return ax
