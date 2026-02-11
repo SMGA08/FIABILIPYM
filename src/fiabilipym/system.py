@@ -34,6 +34,8 @@ from collections.abc import Iterable
 from collections import deque
 from functools import reduce
 import networkx as nx
+from matplotlib import pyplot as plt
+from matplotlib.patches import Rectangle
 
 from .component import Component
 
@@ -552,10 +554,10 @@ class System(object):
         return minimal
 
     def faulttreeanalysis(self, output=None, order=2):
-        r""" Build the fault tree analysis of the system
+        r""" Build the fault tree analysis of the system.
 
-            Print (or write) the content of the dot file needed to draw the
-            fault tree of the system.
+            Print (or write) a plain-text minimal-cut summary that can be used
+            in reports and thesis appendices.
 
             Parameters
             ----------
@@ -567,22 +569,14 @@ class System(object):
                 This is the maximum order of the minimal cuts the function looks
                 for.
 
-            Notes
-            -----
-            Please, see the `Graphviz <http://graphviz.org/>` website for more
-            information about how to transform the ouput code into a nice
-            picture.
-
         """
-        #TODO the tree needs to be simplified
         cuts = self.minimalcuts(order)
-        data = ['digraph G {']
-        data.append('\t"not_S" -> "or"')
-        for i, cut in enumerate(cuts):
-            data.append('\tor -> and_%s' % i)
-            for comp in cut:
-                data.append('\tand_%s -> "%s"' % (i, comp.name))
-        data.append('}')
+        data = [f"Minimal cut sets (order <= {order}):"]
+        if not cuts:
+            data.append("- none")
+        for i, cut in enumerate(cuts, start=1):
+            ordered = sorted((comp.name for comp in cut))
+            data.append(f"- Cut {i}: {', '.join(ordered)}")
 
         if not output:
             print('\n'.join(data))
@@ -594,17 +588,14 @@ class System(object):
                     fobj.write('\n'.join(data) + '\n')
 
 
-    def draw(self):
-        from networkx.drawing.nx_agraph import graphviz_layout
-        import pylab as plt
-        from pprint import pprint
+    def draw(self, ax=None):
         r""" Draw the system
 
-            Draw the system with graphviz.
+            Draw the system as a Matplotlib block diagram (RBD style).
 
             Examples
             --------
-            >>> import pylab as p
+            >>> import matplotlib.pyplot as p
             >>> motor = Component('M', 1e-4, 3e-2)
             >>> powers = [Component('P{}'.format(i), 1e-6, 2e-4) for i in (0,1)]
             >>> S = System()
@@ -615,11 +606,58 @@ class System(object):
             >>> p.show()
 
         """
-        dico = {}
-        for c in self.components:
-            dico[c] = c.name.encode("utf8");
+        if ax is None:
+            _, ax = plt.subplots()
 
-        dico['S'] = "Output";
-        dico['E'] = "Input";
+        dist = nx.single_source_shortest_path_length(self._graph, 'E')
+        levels = {}
+        for node in self._graph.nodes:
+            level = dist.get(node, 0)
+            levels.setdefault(level, []).append(node)
 
-        nx.draw(self._graph, pos=graphviz_layout(self._graph), labels=dico)
+        pos = {}
+        for level, nodes in sorted(levels.items()):
+            nodes = sorted(nodes, key=lambda n: getattr(n, 'name', str(n)))
+            count = len(nodes)
+            for idx, node in enumerate(nodes):
+                y = (count - idx - 1) - (count - 1) / 2.0
+                pos[node] = (float(level), y)
+
+        box_w = 0.55
+        box_h = 0.35
+        for node, (x, y) in pos.items():
+            if node == 'E':
+                label = 'E'
+                face = '#d7f9d7'
+            elif node == 'S':
+                label = 'S'
+                face = '#f9d7d7'
+            elif _is_component(node):
+                label = node.name
+                face = '#dbeafe'
+            else:
+                label = str(node)
+                face = '#f3f4f6'
+
+            rect = Rectangle((x - box_w / 2.0, y - box_h / 2.0), box_w, box_h,
+                             linewidth=1.2, edgecolor='black', facecolor=face)
+            ax.add_patch(rect)
+            ax.text(x, y, label, ha='center', va='center', fontsize=10)
+
+        for src, dst in self._graph.edges:
+            x0, y0 = pos[src]
+            x1, y1 = pos[dst]
+            ax.annotate(
+                '',
+                xy=(x1 - box_w / 2.0, y1),
+                xytext=(x0 + box_w / 2.0, y0),
+                arrowprops=dict(arrowstyle='->', lw=1.2, color='black', shrinkA=2, shrinkB=2),
+            )
+
+        xs = [xy[0] for xy in pos.values()]
+        ys = [xy[1] for xy in pos.values()]
+        ax.set_xlim(min(xs) - 0.8, max(xs) + 0.8)
+        ax.set_ylim(min(ys) - 0.8, max(ys) + 0.8)
+        ax.set_aspect('equal', adjustable='box')
+        ax.axis('off')
+        return ax

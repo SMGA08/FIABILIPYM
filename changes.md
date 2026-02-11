@@ -47,13 +47,13 @@ Why: `iteritems` and `xrange` are Python 2-only; Python 3 uses `items()` and `ra
 - Moved package sources under `src/fiabilipym/`.
 - Moved tests to `tests/` and updated imports to `fiabilipym`.
 - Added modern `pyproject.toml` metadata and a standalone `setup.py`.
-- Declared runtime dependencies: numpy, scipy, sympy, networkx, matplotlib, pygraphviz.
-- Documented Graphviz requirements and uv-based workflows in `README.md`.
+- Declared runtime dependencies: numpy, scipy, sympy, networkx, matplotlib.
+- Documented Matplotlib-only visualization workflows in `README.md`.
 
 ## Notes on behavior
 
 - The computational behavior is unchanged; updates are mechanical and packaging-focused.
-- Visualization continues to rely on matplotlib plus Graphviz layout via `pygraphviz`.
+- Visualization now relies on Matplotlib-only block diagrams (no Graphviz dependency).
 
 ## 2026-01-29: Monte Carlo aging + Weibull distributions + notebook demo
 
@@ -65,3 +65,12 @@ Why: `iteritems` and `xrange` are Python 2-only; Python 3 uses `items()` and `ra
 - Added `fiabilipym_weibull_montecarlo_demo.ipynb` with architectures + plots.
 - Added tests for Monte Carlo behavior, Weibull mean matching, and voter sampling.
 - Exported Weibull helpers at the package root.
+
+
+## 2026-02-11: Graphviz removal + Matplotlib-only RBD drawings
+
+- Removed all Graphviz/`pygraphviz` dependencies and code paths from runtime packaging.
+- Replaced `System.draw()` with a deterministic Matplotlib block-style renderer (rectangles + arrows).
+- Reworked `faulttreeanalysis()` output from DOT text to a readable minimal-cut summary.
+- Replaced Markov DOT export in `Markovprocess.draw()` with direct Matplotlib plotting.
+- Updated README and notebook references to the Matplotlib-only visualization approach.

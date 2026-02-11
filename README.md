@@ -35,7 +35,7 @@ of the original **fiabilipy 2.4 documentation**.
 - Build reliability block diagrams
 - Compute reliability, availability, maintainability, and MTTF
 - Model systems using Markov processes
-- Draw system graphs using Graphviz layouts via NetworkX
+- Draw thesis-friendly block diagrams with Matplotlib only
 - Simulate aging with Weibull (Monte Carlo), yielding MTTF and R(t) curves
 
 ---
@@ -92,7 +92,7 @@ S.reliability(t)
 
 ## Visualization
 
-`System.draw()` uses matplotlib for rendering and Graphviz for layout.
+`System.draw()` renders a pure Matplotlib block diagram (RBD style) with rectangles and arrows.
 
 ```python
 from fiabilipym import Component, System
@@ -175,7 +175,7 @@ five reference architectures and generates:
 - MTTF bar plot
 - Reliability R(t) curves
 - Optional MTTF vs baseline lambda sweep (mean-matched)
-- Graphviz drawings
+- Matplotlib block diagrams
 
 If you want a code-only version, the snippet below mirrors the notebook's core:
 
@@ -282,19 +282,57 @@ plt.show()
 
 ---
 
-## Graphviz system dependency
+## Why Graphviz was removed
 
-Graph layout relies on Graphviz via `pygraphviz`.
+Graphviz/`pygraphviz` support was intentionally removed in favor of a Matplotlib-only workflow.
+
+- Graphviz adds heavy and fragile installation steps (system binaries, PATH setup, platform-specific compilation).
+- Reproducibility suffers across environments, especially Windows and mixed conda/pip setups.
+- For thesis-ready reliability block diagrams, Graphviz is unnecessary overhead.
+
+The new approach is **Matplotlib-only**:
+
+- pure Python dependency stack (no external graph layout binaries),
+- consistent `PNG`/`SVG` export from the same plotting API,
+- easy visual customization with standard Matplotlib primitives.
+
+### Minimal runnable example (series RBD)
+
+```python
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+
+def draw_series_rbd():
+    labels = ["E", "C1", "C2", "C3", "S"]
+    x_positions = range(len(labels))
+    y = 0.0
+    w, h = 0.7, 0.35
+
+    fig, ax = plt.subplots(figsize=(8, 2.2))
+
+    for x, label in zip(x_positions, labels):
+        ax.add_patch(Rectangle((x - w/2, y - h/2), w, h,
+                               facecolor="#dbeafe", edgecolor="black"))
+        ax.text(x, y, label, ha="center", va="center")
+
+    for x0, x1 in zip(x_positions[:-1], x_positions[1:]):
+        ax.annotate("", xy=(x1 - w/2, y), xytext=(x0 + w/2, y),
+                    arrowprops=dict(arrowstyle="->", lw=1.2, color="black"))
+
+    ax.set_xlim(-0.8, len(labels) - 0.2)
+    ax.set_ylim(-0.8, 0.8)
+    ax.axis("off")
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    draw_series_rbd()
+```
+
+Run it with:
 
 ```bash
-# Debian / Ubuntu
-sudo apt-get install graphviz
-
-# macOS (Homebrew)
-brew install graphviz
-
-# Windows (Chocolatey)
-choco install graphviz
+python your_script_name.py
 ```
 
 ---
