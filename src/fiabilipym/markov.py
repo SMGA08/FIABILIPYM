@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 from numpy import zeros, binary_repr, where, array
+from matplotlib import pyplot as plt
 from scipy.linalg import expm
 
 __all__ = ['Markovprocess']
@@ -186,53 +187,35 @@ class Markovprocess(object):
 
             return v[(states, )].sum()
 
-    def draw(self, output=None):
-        r""" Print the content of the dot file needed to draw the markov process
+    def draw(self, ax=None):
+        r""" Draw the Markov process transition graph with Matplotlib.
 
             Parameters
             ----------
-            output : file-like object, optional
-                If `output` is given, then the content is written into this
-                file. `output` *must* have a :py:meth:`write` method.
-
-            Notes
-            -----
-            Please, see the `Graphviz <http://graphviz.org/>`_ website to have
-            more information about how to transform the ouput code into a nice
-            picture.
+            ax : matplotlib.axes.Axes, optional
+                Existing axis to draw on. If omitted, a new figure is created.
         """
-        def binstr(x, N):
-            """ Convert `x` to its binary reprensation over N bits
-
-                >>> bin(2, 4)
-                '0010'
-            """
-            return ''.join([i for i in binary_repr(x, N)])
+        if ax is None:
+            _, ax = plt.subplots()
 
         N = len(self.components)
-        nsquared = 2**N
-        data = ['digraph G {', '\trankdir=LR;']
-        for i in range(nsquared):
-            bini = binstr(nsquared - 1 - i, N)
-            for j in range(i, nsquared):
-                if not self.matrix[i, j]:
-                    continue
+        size = 2 ** N
+        labels = [binary_repr(size - 1 - i, N) for i in range(size)]
+        ys = list(reversed(range(size)))
 
-                if i == j:
-                    data.append('%s -> %s [label = "%s"]'
-                                % (bini, bini, 1.0 + self.matrix[i, j]))
-                else:
-                    binj = binstr(nsquared - 1 - j, N)
-                    data.append('%s -> %s [label = "%s"]'
-                                % (bini, binj, self.matrix[i, j]))
-                    data.append('%s -> %s [label = "%s"]'
-                                % (binj, bini, self.matrix[j, i]))
-        data.append('}')
-        if not output:
-            print('\n'.join(data))
-        else:
-            try:
-                output.write('\n'.join(data) + '\n')
-            except AttributeError:
-                with open(output, 'w') as fobj:
-                    fobj.write('\n'.join(data) + '\n')
+        for i, lbl in enumerate(labels):
+            ax.text(0.0, ys[i], lbl, ha='center', va='center',
+                    bbox=dict(boxstyle='round,pad=0.2', fc='white', ec='black'))
+
+        for i in range(size):
+            for j in range(size):
+                rate = self.matrix[i, j]
+                if i == j or rate == 0:
+                    continue
+                ax.annotate('', xy=(0.9, ys[j]), xytext=(0.1, ys[i]),
+                            arrowprops=dict(arrowstyle='->', lw=0.8, color='gray', alpha=0.5))
+
+        ax.set_xlim(-0.4, 1.2)
+        ax.set_ylim(-1, size)
+        ax.axis('off')
+        return ax

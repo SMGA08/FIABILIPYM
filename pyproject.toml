@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fiabilipym"
 version = "3.6.7"
-description = "Reliability system modeling and analysis with graph visualization"
+description = "Reliability system modeling and analysis with matplotlib block diagrams"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
@@ -15,7 +15,6 @@ dependencies = [
     "matplotlib>=3.9.4",
     "networkx>=3.2.1",
     "numpy>=1.26.4",
-    "pygraphviz>=1.11",
     "scipy>=1.13.1",
     "sympy>=1.14.0",
 ]
