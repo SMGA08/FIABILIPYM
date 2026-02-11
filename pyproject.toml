@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fiabilipym"
-version = "3.6.7"
+version = "1.01"
 description = "Reliability system modeling and analysis with graph visualization"
 readme = "README.md"
 requires-python = ">=3.9"
